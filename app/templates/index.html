@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} - 食譜收藏系統{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-end mb-4 mt-2">
+    <h2 class="fw-bold mb-0 text-dark">{{ page_title }}</h2>
+    {% if recipes %}
+    <span class="text-muted fw-medium">{{ recipes|length }} 份食譜</span>
+    {% endif %}
+</div>
+
+{% if not recipes %}
+<div class="text-center py-5 empty-state">
+    <div class="display-1 text-muted mb-3 opacity-25">
+        <i class="bi bi-journal-x"></i>
+    </div>
+    <h4 class="text-secondary fw-semibold">這裡空空如也</h4>
+    <p class="text-muted">目前還沒有符合條件的食譜喔！</p>
+    {% if request.endpoint == 'main.index' %}
+        <a href="{{ url_for('recipe.create_recipe') }}" class="btn btn-primary rounded-pill mt-3 px-4 shadow-sm">
+            <i class="bi bi-plus-lg me-1"></i>來寫下第一份食譜吧
+        </a>
+    {% else %}
+        <a href="{{ url_for('main.index') }}" class="btn btn-outline-primary rounded-pill mt-3 px-4">
+            返回首頁
+        </a>
+    {% endif %}
+</div>
+{% else %}
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for recipe in recipes %}
+    <div class="col">
+        <div class="card h-100 recipe-card border-0 shadow-sm rounded-4 overflow-hidden">
+            <!-- 圖片區塊 -->
+            <a href="{{ url_for('recipe.recipe_detail', id=recipe.id) }}" class="text-decoration-none">
+                <div class="card-img-wrapper position-relative bg-light">
+                    {% if recipe.image_path %}
+                        <img src="{{ url_for('static', filename=recipe.image_path) }}" class="card-img-top object-fit-cover" alt="{{ recipe.title }}">
+                    {% else %}
+                        <div class="card-img-top d-flex align-items-center justify-content-center bg-light text-secondary placeholder-img">
+                            <i class="bi bi-image fs-1 opacity-50"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- 收藏圖示 (右上角) -->
+                    <div class="position-absolute top-0 end-0 p-3">
+                        <form action="{{ url_for('recipe.toggle_favorite', id=recipe.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-light btn-sm rounded-circle shadow fav-btn" title="加入/移除最愛">
+                                {% if recipe.is_favorite %}
+                                    <i class="bi bi-heart-fill text-danger"></i>
+                                {% else %}
+                                    <i class="bi bi-heart text-secondary"></i>
+                                {% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </a>
+
+            <!-- 內容區塊 -->
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title fw-bold text-dark mb-2">
+                    <a href="{{ url_for('recipe.recipe_detail', id=recipe.id) }}" class="text-decoration-none text-dark stretched-link-off">
+                        {{ recipe.title }}
+                    </a>
+                </h5>
+                
+                <!-- 標籤 -->
+                <div class="mb-3">
+                    {% for tag in recipe.tags %}
+                        <a href="{{ url_for('main.tag_filter', tag_name=tag.name) }}" class="badge rounded-pill text-bg-light border text-decoration-none text-secondary me-1 tag-badge position-relative z-index-2">
+                            {{ tag.name }}
+                        </a>
+                    {% endfor %}
+                </div>
+                
+                <p class="card-text text-muted small flex-grow-1 text-truncate-2">
+                    {{ recipe.content|default('沒有內容敘述。', true) }}
+                </p>
+                
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                    <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>{{ recipe.created_at.strftime('%Y-%m-%d') }}</small>
+                    <a href="{{ url_for('recipe.recipe_detail', id=recipe.id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-medium">
+                        閱讀更多
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

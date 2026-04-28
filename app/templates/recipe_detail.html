@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}{{ recipe.title }} - 食譜收藏系統{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10 col-xl-8">
+        
+        <!-- 麵包屑與操作區 -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="{{ url_for('main.index') }}" class="btn btn-light rounded-pill shadow-sm text-secondary px-3">
+                <i class="bi bi-arrow-left me-1"></i>返回列表
+            </a>
+            <div class="d-flex gap-2">
+                <form action="{{ url_for('recipe.toggle_favorite', id=recipe.id) }}" method="POST">
+                    <button type="submit" class="btn btn-light rounded-pill shadow-sm px-3">
+                        {% if recipe.is_favorite %}
+                            <i class="bi bi-heart-fill text-danger me-1"></i>已收藏
+                        {% else %}
+                            <i class="bi bi-heart me-1"></i>加到最愛
+                        {% endif %}
+                    </button>
+                </form>
+                <a href="{{ url_for('recipe.edit_recipe', id=recipe.id) }}" class="btn btn-primary rounded-pill shadow-sm px-3">
+                    <i class="bi bi-pencil-square me-1"></i>編輯
+                </a>
+                <button type="button" class="btn btn-danger rounded-pill shadow-sm px-3" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <i class="bi bi-trash me-1"></i>刪除
+                </button>
+            </div>
+        </div>
+
+        <!-- 內容主體卡片 -->
+        <div class="card border-0 shadow-lg rounded-5 overflow-hidden mb-5">
+            <!-- 封面圖片 -->
+            {% if recipe.image_path %}
+                <div class="detail-img-wrapper bg-dark">
+                    <img src="{{ url_for('static', filename=recipe.image_path) }}" class="w-100 object-fit-cover opacity-75" alt="{{ recipe.title }}">
+                </div>
+            {% endif %}
+            
+            <div class="card-body p-4 p-md-5">
+                <h1 class="fw-bold display-5 mb-3">{{ recipe.title }}</h1>
+                
+                <div class="d-flex align-items-center mb-4">
+                    <span class="text-muted me-3"><i class="bi bi-calendar3 me-2"></i>{{ recipe.created_at.strftime('%Y-%m-%d') }}</span>
+                    <div>
+                        {% for tag in recipe.tags %}
+                            <a href="{{ url_for('main.tag_filter', tag_name=tag.name) }}" class="badge rounded-pill text-bg-light border text-decoration-none text-secondary me-1 tag-badge fs-6 px-3 py-2">
+                                {{ tag.name }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <hr class="mb-4 opacity-10">
+
+                <div class="recipe-content mb-5">
+                    <h4 class="fw-bold mb-3"><i class="bi bi-list-check me-2 text-primary"></i>食材與步驟</h4>
+                    <div class="bg-light p-4 rounded-4 text-dark lh-lg" style="white-space: pre-wrap;">{{ recipe.content|default('尚未填寫內容', true) }}</div>
+                </div>
+
+                <hr class="mb-4 opacity-10">
+
+                <!-- 烹飪筆記區塊 -->
+                <div class="recipe-note">
+                    <h4 class="fw-bold mb-3"><i class="bi bi-journal-text me-2 text-warning"></i>我的烹飪筆記</h4>
+                    <form action="{{ url_for('recipe.update_note', id=recipe.id) }}" method="POST">
+                        <div class="mb-3">
+                            <textarea name="note" class="form-control bg-light border-0 rounded-4 p-3" rows="4" placeholder="記錄這次煮得如何？下次可以改進哪裡？">{{ recipe.note|default('', true) }}</textarea>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-warning rounded-pill px-4 fw-medium text-dark shadow-sm">
+                                <i class="bi bi-save me-1"></i>儲存筆記
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 刪除確認 Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold">確認刪除</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-secondary">
+        您確定要刪除「{{ recipe.title }}」嗎？這個動作無法復原。
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">取消</button>
+        <form action="{{ url_for('recipe.delete_recipe', id=recipe.id) }}" method="POST">
+            <button type="submit" class="btn btn-danger rounded-pill px-4">確認刪除</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

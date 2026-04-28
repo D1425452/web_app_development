@@ -1,44 +1,48 @@
-from flask import Blueprint
+from flask import Blueprint, render_template, request
+from app.models.recipe import Recipe
+from app.models.tag import Tag
 
 main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index():
-    """
-    顯示首頁的所有食譜列表。
-    輸入: 無
-    處理邏輯: 呼叫 Recipe.get_all()
-    輸出: 渲染 index.html
-    """
-    pass
+    """顯示首頁的所有食譜列表"""
+    recipes = Recipe.get_all()
+    return render_template('index.html', recipes=recipes, page_title="所有食譜")
 
 @main_bp.route('/search')
 def search():
-    """
-    搜尋食譜標題或內容。
-    輸入: GET 參數 ?q=keyword
-    處理邏輯: 使用關鍵字 query 資料庫，以 LIKE 比對 title 或 content
-    輸出: 渲染 index.html (顯示搜尋結果)
-    """
-    pass
+    """搜尋食譜標題或內容"""
+    query = request.args.get('q', '').strip()
+    if query:
+        # 簡單的 LIKE 搜尋，比對標題或內容
+        recipes = Recipe.query.filter(
+            (Recipe.title.ilike(f'%{query}%')) | (Recipe.content.ilike(f'%{query}%'))
+        ).order_by(Recipe.created_at.desc()).all()
+        page_title = f'搜尋結果：{query}'
+    else:
+        recipes = Recipe.get_all()
+        page_title = "所有食譜"
+        query = ""
+    return render_template('index.html', recipes=recipes, page_title=page_title, search_query=query)
 
 @main_bp.route('/favorites')
 def favorites():
-    """
-    顯示我的最愛清單。
-    輸入: 無
-    處理邏輯: 查詢 is_favorite == True 的食譜
-    輸出: 渲染 index.html (顯示最愛結果)
-    """
-    pass
+    """顯示我的最愛清單"""
+    recipes = Recipe.query.filter_by(is_favorite=True).order_by(Recipe.created_at.desc()).all()
+    return render_template('index.html', recipes=recipes, page_title="我的最愛")
 
 @main_bp.route('/tags/<tag_name>')
 def tag_filter(tag_name):
-    """
-    顯示特定標籤的食譜。
-    輸入: URL 變數 tag_name
-    處理邏輯: 尋找該名稱的 Tag，並取出對應的 recipes
-    輸出: 渲染 index.html (顯示標籤過濾結果)
-    錯誤處理: 找不到標籤則回傳 404 或顯示空列表
-    """
-    pass
+    """顯示特定標籤的食譜"""
+    tag = Tag.query.filter_by(name=tag_name).first()
+    if not tag:
+        recipes = []
+        page_title = f'找不到標籤：{tag_name}'
+    else:
+        recipes = tag.recipes
+        # 將 recipes 按照建立時間降冪排序
+        recipes = sorted(recipes, key=lambda x: x.created_at, reverse=True)
+        page_title = f'標籤：{tag_name}'
+        
+    return render_template('index.html', recipes=recipes, page_title=page_title)

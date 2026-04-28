@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}{{ '編輯' if recipe else '新增' }}食譜 - 食譜收藏系統{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex align-items-center mb-4">
+            <a href="javascript:history.back()" class="btn btn-light rounded-circle shadow-sm me-3" style="width: 40px; height: 40px; line-height: 28px;">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <h2 class="fw-bold mb-0">{{ '編輯' if recipe else '新增' }}食譜</h2>
+        </div>
+
+        <div class="card border-0 shadow-lg rounded-5 overflow-hidden">
+            <div class="card-body p-4 p-md-5">
+                <form action="{{ url_for('recipe.edit_recipe', id=recipe.id) if recipe else url_for('recipe.create_recipe') }}" method="POST" enctype="multipart/form-data">
+                    
+                    <div class="mb-4">
+                        <label for="title" class="form-label fw-bold">食譜標題 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-lg bg-light border-0 rounded-3" id="title" name="title" value="{{ form_data.get('title', '') }}" placeholder="例如：家傳紅燒肉" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="tags" class="form-label fw-bold">分類標籤</label>
+                        <input type="text" class="form-control bg-light border-0 rounded-3" id="tags" name="tags" value="{{ form_data.get('tags_str', '') }}" placeholder="例如：中式, 晚餐, 備餐 (使用逗號分隔)">
+                        <div class="form-text text-muted mt-2"><i class="bi bi-info-circle me-1"></i>多個標籤請用半形逗號 ( , ) 分隔</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="image" class="form-label fw-bold">食譜圖片</label>
+                        {% if recipe and recipe.image_path %}
+                            <div class="mb-3 position-relative" style="width: fit-content;">
+                                <img src="{{ url_for('static', filename=recipe.image_path) }}" class="rounded-4 object-fit-cover shadow-sm" alt="Current Image" style="max-height: 150px; border: 3px solid #fff;">
+                                <span class="badge bg-dark position-absolute top-0 start-100 translate-middle rounded-pill">目前圖片</span>
+                            </div>
+                        {% endif %}
+                        <input type="file" class="form-control bg-light border-0 rounded-3" id="image" name="image" accept="image/*">
+                        <div class="form-text mt-2">上傳新圖片會取代原有的圖片。支援 JPG, PNG, GIF, WEBP。</div>
+                    </div>
+
+                    <div class="mb-5">
+                        <label for="content" class="form-label fw-bold">食材與步驟</label>
+                        <textarea class="form-control bg-light border-0 rounded-4 p-3" id="content" name="content" rows="10" placeholder="記錄需要的食材比例、烹飪步驟與火候...">{{ form_data.get('content', '') }}</textarea>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="javascript:history.back()" class="btn btn-light rounded-pill px-4 fw-medium text-secondary me-md-2">取消</a>
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm">
+                            <i class="bi bi-check2-circle me-1"></i>儲存食譜
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
